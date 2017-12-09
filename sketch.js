@@ -1,15 +1,17 @@
 var cols, rows;
-var w = 40
+var w = 35
 var grid = []
 
 var current
 
+var stack = []
+
 function setup() {
-    createCanvas(400, 400)
+    createCanvas(700, 700)
     cols = floor(width / w)
     rows = floor(height / w)
 
-    frameRate(150)
+    // frameRate(1)
 
     for (var j = 0; j < rows; j++) {
         for (var i = 0; i < cols; i++) {
@@ -24,14 +26,30 @@ function setup() {
 function draw() {
     background(51)
     for (var i = 0; i < grid.length; i++) {
-        grid[i].show();
+        grid[i].show()
     }
 
-    current.visited = true;
-    var next = current.checkNeighbors();
+    current.visited = true
+    current.highlight()
+
+    //STEP 1
+    var next = current.checkNeighbors()
     if (next) {
-        next.visited = true;
-        current = next;
+        next.visited = true
+
+        //STEP 2
+        stack.push(current)
+        console.log("up "+stack.length)
+
+
+        //STEP 3
+        removeWalls(current, next)
+
+        //STEP 4
+        current = next
+    } else if (stack.length > 0) {
+    	current = stack.pop();
+    	console.log("down "+stack.length)
     }
 
 }
@@ -40,7 +58,7 @@ function index(i, j) {
     if (i < 0 || j < 0 || i > cols - 1 || j > rows - 1) {
         return -1
     }
-    return i + j * cols;
+    return i + j * cols
 }
 
 function Cell(i, j) {
@@ -50,7 +68,7 @@ function Cell(i, j) {
     this.visited = false
 
     this.checkNeighbors = function() {
-        var neighbors = [];
+        var neighbors = []
 
         var top = grid[index(i, j - 1)]
         var right = grid[index(i + 1, j)]
@@ -81,8 +99,16 @@ function Cell(i, j) {
             var r = floor(random(0, neighbors.length))
             return neighbors[r]
         } else {
-            return undefined;
+            return undefined
         }
+    }
+
+    this.highlight = function() {
+        var x = this.i * w
+        var y = this.j * w
+        noStroke()
+        fill(0, 255, 0, 100)
+        rect(x, y, w, w)
     }
 
     this.show = function() {
@@ -107,6 +133,7 @@ function Cell(i, j) {
         }
 
         if (this.visited) {
+            noStroke();
             fill(255, 0, 255, 100)
             rect(x, y, w, w)
         }
@@ -114,5 +141,33 @@ function Cell(i, j) {
 
         // noFill()
         // rect(x, y, w, w)
+    }
+}
+
+
+
+
+
+
+
+
+
+function removeWalls(a, b) {
+    var x = a.i - b.i
+    if (x === 1) {
+        a.walls[3] = false
+        b.walls[1] = false
+    } else if (x === -1) {
+        a.walls[1] = false
+        b.walls[3] = false
+    }
+
+    var y = a.j - b.j
+    if (y === 1) {
+        a.walls[0] = false
+        b.walls[2] = false
+    } else if (y === -1) {
+        a.walls[2] = false
+        b.walls[0] = false
     }
 }
